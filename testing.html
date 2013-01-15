@@ -1,0 +1,40 @@
+<html>
+<head>
+
+<title>Exterminator Test</title>
+
+<link rel="stylesheet" href="css/style.css" type="text/css">
+
+<script src="my_game_v7.js"></script>		
+        		
+</head>
+
+<body onload="">
+	<div id="gameDiv" onclick="">
+		
+	</div>
+	<div id="settings">
+		<form onsubmit="">
+			<div>
+				Enemigos:<br/>
+				<input name="numMonsters" type="number" value="5"/>
+			</div>
+			<div>
+				Intervalo disparo:<br/>
+				<input name="timeShoot" type="number" value="1000"/>
+			</div>
+			<div>
+				<br/>
+				<input type="button" onclick="window.reset();" value="Reset!"/>
+			</div>
+		</form>
+	</div>
+
+<script type="text/javascript">
+    //loadCanvas('gameDiv');
+    window.initGame();
+</script>
+
+</body>
+
+</html>
