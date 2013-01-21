@@ -1,6 +1,8 @@
 
 
 (function(ns){
+    
+    var DEBUG = true;
 
     //VARIABLES GLOBALES
     var sWidth = 512;
@@ -19,6 +21,8 @@
     //Canvas element and Context
     var canvas;
     var ctx;
+    //Element for FPS
+    var fpsElement = null;
 
     //Time refresh
     var then;
@@ -73,42 +77,39 @@
         self.incY = incY;
     }
     
-    var bala = {
-        x: 0,
-        y: 0,
-        vx: 0,
-        vy: 0,
-        rad: 0,
-        speed: 128
-    };
-
-
+    function Shoot(posX, posY, vx, vy, rad){
+        var self = this;
+        self.x = posX;
+        self.y = posY;
+        self.vx = vx;
+        self.vy = vy;
+        self.rad = rad;
+    }
+    
+    //Variables globales
+    var balaList = [];
     var monsterList = [];
     var numMonsters = 5;
+    var timerShoot = 1000;
+    var idShootThread = null;
     
     var monstersCaught = 0;
         
     // Handle keyboard controls
     var keysDown = {};
     
-    // The main game loop
-    var main = function () {
-        var now = Date.now();
-        var delta = now - then;
-
-        update(delta / 1000);
-        render();
-
-        then = now;
-    };
-
     function loadCanvas(id) {
         div = document.getElementById(id);     
         div.appendChild(canvas);
     };
+    
+    function loadSettings() {
+        numMonsters = document.forms[0].numMonsters.value;
+        timerShoot = document.forms[0].timeShoot.value;
+    };
 
     // Let's play this game!
-    ns.initGame = function () {
+    ns.initGame = function (loopMode) {
         
         // Create the canvas
         canvas = document.createElement("canvas");
@@ -132,15 +133,22 @@
         
         loadCanvas('gameDiv');
         
+        fpsElement = document.getElementById('fps');
+        
         reset();
         then = Date.now();
-        setInterval(main, 1); // Execute as fast as possible
         
-        setInterval(shoot, 1000);
+        if(loopMode == "rAF")
+            requestAnimationFrame(mainRAF);
+        else if(loopMode == "setInterval")
+            setInterval(main, 1000/60);
+        
     };
     
     // Reset the game when the player catches a monster
     ns.reset = function () {
+        loadSettings();
+        
         hero.x = canvas.width / 2;
         hero.y = canvas.height / 2;
 
@@ -155,6 +163,9 @@
             var newMonster = new  Monster(randx, randy, randIncX, randIncY);
             monsterList.push(newMonster);
         }
+        if(idShootThread!=null)
+			window.clearInterval(idShootThread);
+        idShootThread = setInterval(shoot, timerShoot);
     };
     
     // Update game objects
@@ -236,18 +247,50 @@
     
     //SHOOT
     function shoot() {
-        bala.x = hero.x + heroImage.width/2;
-        bala.y = hero.y + heroImage.height/2;
-        bala.vx = mouseX - hero.x;
-        bala.vy = mouseY - hero.y;
-        bala.rad = radians;	
+        
+        var x = hero.x + heroImage.width/2;
+        var y = hero.y + heroImage.height/2;
+        var vx = mouseX - hero.x;
+        var vy = mouseY - hero.y;
+        var rad = radians;
+        
+        var newBala = new Shoot(x,y,vx,vy,rad);
+        balaList.push(newBala);	
+        
+        if(DEBUG)
+            console.log("Num balas: " + balaList.length);
         
     };
     
     //SHOOT_MOVING
     var shoot_moving = function (modifier) {
-        bala.x += bala.vx * modifier;
-        bala.y += bala.vy * modifier;
+        
+        var numBalas = balaList.length;
+        var balaListRemove = [];
+        
+        for(var i=0;i<numBalas;i++) {
+            var currentBala = balaList[i]
+            currentBala.x += currentBala.vx * modifier;
+            currentBala.y += currentBala.vy * modifier;
+            
+            //console.log(currentBala.x + ", " + currentBala.y);
+            
+            if(currentBala.x < 0 || currentBala.x > sWidth)
+                balaListRemove.push(i);
+            else if(currentBala.y < 0 || currentBala.y > sHeight)
+                balaListRemove.push(i);
+            
+        }
+        //Remove balas out screen
+        //console.log(balaListRemove.length);
+        if(balaListRemove.length > 0) {
+            for(var j=balaListRemove.length-1;j>=0;j--) {
+                if(DEBUG)
+                    console.log("Borrar " + balaListRemove[j]);
+                if(balaListRemove[j]!=undefined) 
+                    balaList.splice(balaListRemove[j],1);
+            }
+        }
     };
     
     // Draw everything
@@ -282,12 +325,17 @@
         }
         
         if(balaReady) {
-            //ctx.drawImage(balaImage, bala.x, bala.y);
-            ctx.save();
-            ctx.translate(bala.x, bala.y); 
-            ctx.rotate(-bala.rad); 
-            ctx.drawImage(balaImage,0 - balaImage.width/2 ,0 - balaImage.height/2);
-            ctx.restore();
+            var numBalas = balaList.length;
+            
+            for(var i=0;i<numBalas;i++) {
+                var currentBala = balaList[i];
+                //ctx.drawImage(balaImage, bala.x, bala.y);
+                ctx.save();
+                ctx.translate(currentBala.x, currentBala.y); 
+                ctx.rotate(-currentBala.rad); 
+                ctx.drawImage(balaImage,0 - balaImage.width/2 ,0 - balaImage.height/2);
+                ctx.restore();
+            }
         }
 
         // Score
@@ -297,7 +345,45 @@
         ctx.textBaseline = "top";
         ctx.fillText("Goblins caught: " + monstersCaught, 1, 1);
     };
+    
+    /*
+     * Carga elemento DOM fps cada segundo
+     */
+    var lastFpsUpdateTime = 0;
+    function loadFps(now) {
+	   if (now - lastFpsUpdateTime > 1000) {
+		  lastFpsUpdateTime = now;
+		  fpsElement.innerHTML = calculateFps(now, then) + ' fps';
+	   }
+
+	   return fps;
+	}
+	
+	
+	// The main game loop with requestAnimationFrame call
+    var mainRAF = function () {
+        var now = Date.now();
+        var delta = now - then;
         
+		loadFps(now);
+        update(delta / 1000);
+        render();
+
+        then = now;
+        requestAnimationFrame(main);
+    };
+    
+    var main = function () {
+        var now = Date.now();
+        var delta = now - then;
+        
+		loadFps(now);
+        update(delta / 1000);
+        render();
+
+        then = now;
+    };
+            
     
 }(window));
 //FIN 

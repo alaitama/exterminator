@@ -1,6 +1,8 @@
 
 
 (function(ns){
+    
+    var DEBUG = true;
 
     //VARIABLES GLOBALES
     var sWidth = 512;
@@ -19,6 +21,8 @@
     //Canvas element and Context
     var canvas;
     var ctx;
+    //Element for FPS
+    var fpsElement = null;
 
     //Time refresh
     var then;
@@ -61,48 +65,19 @@
         x: 0,
         y: 0
     };
-
-    function Monster(posX, posY, incX, incY){
-        var self = this;
-        self.x = posX;
-        self.y = posY;
-        self.width = 25;
-        self.height = 25;
-        self.speed = 128;
-        self.incX = incX;
-        self.incY = incY;
-    }
     
-    function Shoot(posX, posY, vx, vy, rad){
-        var self = this;
-        self.x = posX;
-        self.y = posY;
-        self.vx = vx;
-        self.vy = vy;
-        self.rad = rad;
-    }
     //Variables globales
     var balaList = [];
     var monsterList = [];
     var numMonsters = 5;
     var timerShoot = 1000;
+    var idShootThread = null;
     
     var monstersCaught = 0;
         
     // Handle keyboard controls
     var keysDown = {};
     
-    // The main game loop
-    var main = function () {
-        var now = Date.now();
-        var delta = now - then;
-
-        update(delta / 1000);
-        render();
-
-        then = now;
-    };
-
     function loadCanvas(id) {
         div = document.getElementById(id);     
         div.appendChild(canvas);
@@ -114,7 +89,7 @@
     };
 
     // Let's play this game!
-    ns.initGame = function () {
+    initGame = function (animationMode) {
         
         // Create the canvas
         canvas = document.createElement("canvas");
@@ -138,14 +113,17 @@
         
         loadCanvas('gameDiv');
         
+        fpsElement = document.getElementById('fps');
+        
         reset();
         then = Date.now();
-        setInterval(main, 1); // Execute as fast as possible
+        
+        requestAnimationFrame(main);
         
     };
     
     // Reset the game when the player catches a monster
-    ns.reset = function () {
+    reset = function () {
         loadSettings();
         
         hero.x = canvas.width / 2;
@@ -162,8 +140,9 @@
             var newMonster = new  Monster(randx, randy, randIncX, randIncY);
             monsterList.push(newMonster);
         }
-        
-        setInterval(shoot, timerShoot);
+        if(idShootThread!=null)
+			window.clearInterval(idShootThread);
+        idShootThread = setInterval(shoot, timerShoot);
     };
     
     // Update game objects
@@ -186,33 +165,63 @@
             
         shoot_moving(modifier);
 
-        // Are they touching?
-        /*
+        //1.- Miramos si Balas tocan a Monsters
+        var monsterListRemove = []; //Lista para elminar monsters tocados
+        var balaListRemove = []; //Lista para eliminar balas que tocan monster
         for(var i=0;i<numMonsters;i++) {
             var currentMonster = monsterList[i];
+            
+            //Miramos si bala toca monster
+            for(var j=0;j<balaList.length;j++) {
+                var currentBala = balaList[j];
+                if(
+                    currentBala.x <= (currentMonster.x + currentMonster.width)
+                    && currentMonster.x <= (currentBala.x + currentBala.width)
+                    && currentBala.y <= (currentMonster.y + currentMonster.height)
+                    && currentMonster.y <= (currentBala.y + currentBala.width)
+                ) {
+                    balaListRemove.push(j);
+                    monsterListRemove.push(i)
+                    
+                }
+            }
+        }
+        //2.- Borra monsters tocados
+        if(monsterListRemove.length > 0) {
+            for(var j=monsterListRemove.length-1;j>=0;j--) {
+                if(DEBUG)
+                    console.log("Borrar " + monsterListRemove[j]);
+                if(monsterListRemove[j]!=undefined) 
+                    monsterList.splice(monsterListRemove[j],1);
+                    numMonsters --;
+            }
+        }
+        //3.- Borra balas que tocan monster
+        if(balaListRemove.length > 0) {
+            for(var j=balaListRemove.length-1;j>=0;j--) {
+                if(DEBUG)
+                    console.log("Borrar " + balaListRemove[j]);
+                if(balaListRemove[j]!=undefined) 
+                    balaList.splice(balaListRemove[j],1);
+            }
+        }
+        
+        //4.- Miramos monsters tocan heroe
+        for(var i=0;i<numMonsters;i++) {
+            var currentMonster = monsterList[i];
+            
+            //Miramos si monster toca heroe
             if (
-                hero.x <= (currentMonster.x + 32)
+                hero.x <= (currentMonster.x + currentMonster.width)
                 && currentMonster.x <= (hero.x + 32)
-                && hero.y <= (currentMonster.y + 32)
+                && hero.y <= (currentMonster.y + currentMonster.height)
                 && currentMonster.y <= (hero.y + 32)
             ) {
                 ++monstersCaught;
-                reset();
+                //reset();
             }
         }
-        */
-        // Are they touching?
-        /*
-        if (
-            bala.x <= (monster.x + 25)
-            && monster.x <= (bala.x + 10)
-            && bala.y <= (monster.y + 25)
-            && monster.y <= (bala.y + 10)
-        ) {
-            ++monstersCaught;
-            reset();
-        }
-        */
+        
     };
     
     //MONSTER_MOVIN
@@ -252,10 +261,11 @@
         var vy = mouseY - hero.y;
         var rad = radians;
         
-        var newBala = new Shoot(x,y,vx,vy,rad);
+        var newBala = new Shot(x,y,vx,vy,rad);
         balaList.push(newBala);	
         
-        console.log(balaList.length);
+        if(DEBUG)
+            console.log("Num balas: " + balaList.length);
         
     };
     
@@ -282,7 +292,8 @@
         //console.log(balaListRemove.length);
         if(balaListRemove.length > 0) {
             for(var j=balaListRemove.length-1;j>=0;j--) {
-                console.log("Borrar " + balaListRemove[j]);
+                if(DEBUG)
+                    console.log("Borrar " + balaListRemove[j]);
                 if(balaListRemove[j]!=undefined) 
                     balaList.splice(balaListRemove[j],1);
             }
@@ -300,7 +311,7 @@
             var centerHeroX = hero.x; // - heroImage.width/2;
             var centerHeroY = hero.y; // - heroImage.height/2;
             //console.log(heroImage.x);
-            var radians = Math.atan2(mouseX - centerHeroX, mouseY - centerHeroY);
+            radians = Math.atan2(mouseX - centerHeroX, mouseY - centerHeroY);
             var degree = (radians * (180 / Math.PI) * -1) + 90; 
             //ctx.rotate(Math.PI / 180 * 0.5); // 1/2 a degree
             //console.log(degree);
@@ -308,15 +319,12 @@
             ctx.translate(centerHeroX, centerHeroY); 
             ctx.rotate(-radians); 
             ctx.drawImage(heroImage,0 - heroImage.width/2 ,0 - heroImage.height/2);
-            //ctx.rotate(radians);
-            //ctx.translate(-centerHeroX,-centerHeroY);
             ctx.restore();
         }
         
         if (monsterReady) {
             for(var i=0;i<numMonsters;i++) {
-                var currentMonster = monsterList[i];
-                ctx.drawImage(monsterImage, currentMonster.x, currentMonster.y);
+                monsterList[i].draw(ctx, monsterImage);
             }
         }
         
@@ -324,13 +332,7 @@
             var numBalas = balaList.length;
             
             for(var i=0;i<numBalas;i++) {
-                var currentBala = balaList[i];
-                //ctx.drawImage(balaImage, bala.x, bala.y);
-                ctx.save();
-                ctx.translate(currentBala.x, currentBala.y); 
-                ctx.rotate(-currentBala.rad); 
-                ctx.drawImage(balaImage,0 - balaImage.width/2 ,0 - balaImage.height/2);
-                ctx.restore();
+                balaList[i].draw(ctx, balaImage);
             }
         }
 
@@ -341,6 +343,33 @@
         ctx.textBaseline = "top";
         ctx.fillText("Goblins caught: " + monstersCaught, 1, 1);
     };
+    
+    /*
+     * Carga elemento DOM fps cada segundo
+     */
+    var lastFpsUpdateTime = 0;
+    function loadFps(now) {
+	   if (now - lastFpsUpdateTime > 1000) {
+		  lastFpsUpdateTime = now;
+		  fpsElement.innerHTML = calculateFps(now, then) + ' fps';
+	   }
+
+	   return fps;
+	}
+    
+    // The main game loop
+    var main = function () {
+        var now = Date.now();
+        var delta = now - then;
+        
+		loadFps(now);
+        update(delta / 1000);
+        render();
+
+        then = now;
+        requestAnimationFrame(main);
+    };
+
         
     
 }(window));

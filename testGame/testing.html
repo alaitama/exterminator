@@ -1,0 +1,71 @@
+<html>
+<head>
+
+<title>Exterminator Test</title>
+
+<link rel="stylesheet" href="css/style.css" type="text/css">
+
+<script src="rAF.js"></script>	
+<script src="utils.js"></script>
+<script src="testingGame.js"></script>		
+        		
+</head>
+
+<body onload="">
+	<div id="gameDiv" onclick="">
+		
+	</div>
+	<div id="settings">
+		<form onsubmit="">
+			<div>
+				Enemigos:<br/>
+				<input name="numMonsters" type="number" value="5"/>
+			</div>
+			<div>
+				Intervalo disparo:<br/>
+				<input name="timeShoot" type="number" value="1000"/>
+			</div>
+            <div>
+                <br/>
+                <script type="text/javascript">
+                    if(existsRequestAnimationFrame())
+                        document.write("Existe requestAnimationFrame");
+                    else
+                        document.write("No existe requestAnimationFrame");
+                </script>
+                <br/><br/>
+                <input type="radio" name="animationMode" value="setInterval"> setInterval(main,1)<br>
+                <input type="radio" name="animationMode" value="rAF" checked> requestAnimationFrame(main)<br>
+            </div>
+			<div>
+				<br/>
+				<input type="button" onclick="start();" value="Start!"/>
+			</div>
+		</form>
+		<br>
+		<h2 id="fps">FPS: </h2>
+	</div>
+
+<script type="text/javascript">
+
+function start() {
+    
+    var radios = document.getElementsByName('animationMode');
+    var loopMode = "rAF";
+    for (var i = 0, length = radios.length; i < length; i++) {
+        if (radios[i].checked) {
+            alert(radios[i].value);
+            loopMode = radios[i].value;
+            
+        }
+    }
+    //loadCanvas('gameDiv');
+    //window.initGame("rAF");
+    window.initGame(loopMode);
+}
+
+</script>
+
+</body>
+
+</html>
