@@ -1,8 +1,35 @@
 
+body {
+    margin: 0; 
+    padding: 0; 
+    
+    background-color: #000;
+    color: #FFF;
+}
+
+#splash {
+    position: absolute;
+    z-index: 1;
+    display: none;
+    background-color: #FFF;
+    color: #000;
+    opacity: 0.0;
+    
+}
+
+canvas { display: block; margin: 0 auto; background: #fff; }
+
+
+
+
 #gameDiv {
+/*
 	width: 600px;
 	height: 450px;
+*/
 	float:left;
+    padding:0px;
+    margin:0px;
 }
 
 #settings {
