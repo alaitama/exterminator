@@ -1,0 +1,24 @@
+
+body {
+    padding: 0px;
+    margin: 0px;
+
+    /*font-family: Helvetica,Verdana, sans-serif;*/
+    /*font-family: ‘Times New Roman’,Georgia, Garamond, sans;*/
+    font-family: Courier,mono;
+    font-size: 14px;
+}
+
+#wrapper {
+    width: 98.9%;
+    height: 100%;
+    
+    background-color: #D2D2D2;
+    padding: 5px;
+}
+
+#mainMenu {
+    background-color: #DEDA85;
+}
+
+

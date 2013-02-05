@@ -1,0 +1,85 @@
+<!--
+   sin título.html
+   
+   Copyright 2013 90025807 <90025807@W152712>
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301, USA.
+   
+   
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title>sin título</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="generator" content="Geany 1.22" />
+</head>
+
+<script type="text/javascript">
+    window.onload = function() {
+        var bar = new progress_bar(document.getElementById('progress_bar_wrap'))
+        bar.set_percentage(25);
+		var bar2 = new progress_bar(document.getElementById('progress_bar_wrap2'))
+        bar2.set_percentage(50);
+    }
+    
+    function progress_bar(container) {
+        var bar = document.createElement('div');
+        var text = document.createElement('div');
+        
+        bar.style.width = '0px';
+        bar.style.height = '100%';
+        bar.style.background = '#eef';
+        
+        container.appendChild(bar);
+        
+        text.style.marginTop = '-20px';
+        text.style.textAlign = 'center';
+        text.style.color = '#111';
+        text.style.textSize = '15px';
+        
+        text.appendChild(document.createTextNode('0%'));
+        
+        container.appendChild(text);
+        
+        this.set_percentage = function(percentage) {
+            bar.style.width = percentage + '%';
+            
+            text.removeChild(text.firstChild);
+            text.appendChild(document.createTextNode(percentage + '%'));
+        }
+    }
+</script>
+
+<body>
+<div id="main_wrap" style="border: 1px solid #000; padding: 5px; width: 382px;">
+
+    <div id="top_ui" style="width: 380px; height: 30px; border: 1px solid #000; margin-bottom: 5px; text-align: center;">
+		<div id="progress_bar_wrap" style="float: left; width: 25%; height: 20px; margin: 4px; border:1px solid #000;"></div>
+		123456
+		<div id="progress_bar_wrap2" style="float: right; width: 25%; height: 20px; margin: 4px; border:1px solid #000;"></div>
+	</div>
+	<div id="gameDiv" style="height: 480px; width: 380px; background: #DDD; border: 1px solid #000;"></div>
+	
+	<div id="bottom_ui" style="width: 380px; height:25px; background: #D95; border: 1px solid #000; margin-top: 5px;"></div>
+	
+</div>
+</body>
+
+</html>
