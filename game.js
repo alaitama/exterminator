@@ -5,8 +5,22 @@
     var DEBUG = true;
 
     //VARIABLES GLOBALES
-    var WIDTH = 512;
-    var HEIGHT = 480;
+    var sectionName = "game";
+    var topUIName = "top_ui";
+    var bottomUIName = "bottom_ui";
+    //Origianl sizes id game
+    var WIDTH = 450;
+    var HEIGHT = 600;
+    var RATIO = null;
+    //Original size of UI, saved because resized
+    var topUIHeight = 20;
+    var bottomUIHeight = 20;
+    //Size of the game resized
+    var currentWidth = null;
+    var currentHeight = null;
+    //Scaled ratio between the original size to current
+    var scaledWidth = null;
+    var scaledHeight = null;
 
     var iKeyUp = 38;
     var iKeyDown = 40;
@@ -26,6 +40,7 @@
     //Canvas element and Context
     var canvas;
     var ctx;
+    
     //Element for FPS
     var fpsElement = null;
 
@@ -103,14 +118,26 @@
     initGame = function () {
         
         // Create the canvas
-        canvas = document.createElement("canvas");
+        //canvas = document.createElement("canvas");
+        canvas = $('canvas')[0];
         ctx = canvas.getContext("2d");
 
+        // the proportion of width to height
+        RATIO = WIDTH / HEIGHT;
+
+        // these will change when the screen is resized
+        currentWidth = WIDTH;
+        currentHeight = HEIGHT;
+
+        // setting this is important
+        // otherwise the browser will
+        // default to 320 x 200
         canvas.width = WIDTH;
-        canvas.height = HEIGHT;
+        canvas.height = HEIGHT - topUIHeight - bottomUIHeight;
+        //canvas.height = HEIGHT;
         
-        
-        loadCanvas('gameDiv');
+        resizeGame();
+        //loadCanvas('gameDiv');
         
         initUI();
         
@@ -121,6 +148,63 @@
         
         requestAnimationFrame(main);
         
+    };
+    
+    resizeGame = function() {
+ 
+        currentHeight = window.innerHeight;
+        // resize the width in proportion to the new height
+        currentWidth = currentHeight * RATIO;
+        //Save scale ratio
+        scaledWidth = WIDTH / currentWidth;
+        scaledHeight = HEIGHT / currentHeight;
+        
+        var currentTopUIHeight = topUIHeight * (currentHeight / HEIGHT);
+        var currentBottomUIHeight = bottomUIHeight * (currentHeight / HEIGHT);
+        //currentCanvasHeight = canvas.height * RATIO;
+        var currentCanvasHeight = currentHeight - currentTopUIHeight - currentBottomUIHeight;
+        
+        // this will create some extra space on the
+        // page, allowing us to scroll past
+        // the address bar, thus hiding it.
+        /*
+        if (android || ios) {
+            document.body.style.height = (window.innerHeight + 50) + 'px';
+        }
+        */
+ 
+        // set the new canvas style width and height
+        // note: our canvas is still 320 x 480, but
+        // we're essentially scaling it with CSS
+        $('#'+sectionName).css('height', currentHeight+"px");
+        $('#'+sectionName).css('width', currentWidth+"px");                
+        canvas.style.width = currentWidth + 'px';
+        canvas.style.height = currentCanvasHeight + 'px';
+        $('#'+topUIName).css('height', currentTopUIHeight + "px");
+        $('#'+topUIName).css('width', currentWidth + "px");
+        $('#'+bottomUIName).css('height', currentBottomUIHeight + "px");
+        $('#'+bottomUIName).css('width', currentWidth + "px");
+        
+        
+ 
+        // we use a timeout here because some mobile
+        // browsers don't fire if there is not
+        // a short delay
+        window.setTimeout(function() {
+                window.scrollTo(0,1);
+        }, 1);
+    };
+    
+    initAgent = function() {
+        
+        // we need to sniff out Android and iOS
+        // so that we can hide the address bar in
+        // our resize function
+        ua = navigator.userAgent.toLowerCase();
+        android = ua.indexOf('android') > -1 ? true : false;
+        ios = ( ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1  ) ? 
+            true : false;
+            
     };
     
     initUI = function() {
@@ -147,6 +231,14 @@
             mouseY = e.clientY;
         }, true);
         */
+        $(window).on('resize', resizeGame);
+        $('canvas').on('click', function(e) {
+            console.log("e.client("+e.clientX+","+e.clientY+")");
+            console.log("e.page("+e.pageX+","+e.pageY+")");
+            console.log("e.offset("+e.offsetX+","+e.offsetY+")");
+            console.log("e.layer("+e.layerX+","+e.layerY+")");
+        });
+        
         $('canvas').on('mousemove', onMouseMove);
         $('canvas').on('dblclick', onDblClick);
         $('canvas').on('mousedown', function(){ return false; }); //corrigue la seleccion de texto al doble click
@@ -172,15 +264,24 @@
     };
     
     onMouseMove = function(e) {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
+        e.preventDefault();
+        //mouseX = e.clientX;
+        //mouseY = e.clientY;
+        mouseX = (e.offsetX || e.layerX) * scaledWidth;
+        mouseY = (e.offsetY || e.layerY) * scaledHeight;
+        //mouseX = e.pageX - canvas.offsetLeft;
+        //mouseY = e.pageY - canvas.offsetTop;
+        //mouseX = (e.offsetX);
+        //mouseY = (e.offsetY);
     };
     
     onDblClick = function(e) {
         e.preventDefault();
         
-        jumpX = e.clientX;
-        jumpY = e.clientY;
+        //jumpX = e.clientX;
+        //jumpY = e.clientY;
+        jumpX = (e.offsetX || e.layerX) * scaledWidth;
+        jumpY = (e.offsetY || e.layerY) * scaledHeight;
             
         if(DEBUG)
             console.log("Jumped to: x=" + jumpX + ",y=" + jumpY);
@@ -246,7 +347,7 @@
         //Si no esta saltando, giramos
         if(jumpX==0 && jumpY==0) {
             
-            hero.radiansDraw = Math.atan2(mouseX - hero.x, mouseY - hero.y - hero.height);
+            //hero.radiansDraw = Math.atan2(mouseX - hero.x, mouseY - hero.y - hero.height);
             hero.radians = Math.atan2(mouseX - hero.x, mouseY - hero.y);
             //var degree = (radians * (180 / Math.PI) * -1) + 180; 
         }
@@ -255,19 +356,11 @@
             if(!hero.jumping) {
                 hero.jumping = true;
                 hero.vx = jumpX - hero.x;
-                hero.vy = jumpY - hero.y - hero.height;
+                hero.vy = jumpY - hero.y;
 
-                // Get absolute value of each vector
-                ax = Math.abs(hero.vx);
-                ay = Math.abs(hero.vy);
-
-                // Create a ratio
-                ratio = 1 / Math.max(ax, ay)
-                ratio = ratio * (1.29289 - (ax + ay) * ratio * 0.29289)
-
-                // Multiply by ratio
-                hero.vx = hero.vx * ratio * 300
-                hero.vy = hero.vy * ratio * 300
+                var vecNormalized = normalizeVector(hero.vx, hero.vy);
+                hero.vx = vecNormalized[0] * 300;
+                hero.vy = vecNormalized[1] * 300;
                 
                 ++hero.animFrame;
                 
@@ -427,7 +520,7 @@
             var x = hero.x;
             var y = hero.y;
             var vx = mouseX - hero.x;
-            var vy = mouseY - hero.y - hero.height;
+            var vy = mouseY - hero.y;
             var rad = hero.radians;
             
             var newBala = new Shot(x,y,vx,vy,rad);

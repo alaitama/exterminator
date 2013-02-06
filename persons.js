@@ -34,7 +34,7 @@ Hero.prototype.draw = function(ctx, heroImage) {
     // Render image to canvas
     ctx.save();
     ctx.translate(centerHeroX, centerHeroY); 
-    ctx.rotate(-self.radiansDraw); 
+    ctx.rotate(-self.radians); 
     
     
     ctx.drawImage(
@@ -102,7 +102,7 @@ var Monster = function (posX, posY, incX, incY){
     self.x = posX,
     self.y = posY,
     self.radians = 0,
-    self.speed = 128,
+    self.speed = 200,
     self.noChangeDirTimer = 0,
     self.noChangeDirDelay = 400,
     self.stopTimer = 0,
@@ -159,6 +159,9 @@ Monster.prototype.update = function(heroX, heroY, modifier) {
             this.stopTimer = 0;
             this.vx = heroX - this.x;
             this.vy = heroY - this.y;
+            var vecNorm = normalizeVector(this.vx, this.vy);
+            this.vx = vecNorm[0] * this.speed;
+            this.vy = vecNorm[1] * this.speed;
             this.radians = Math.atan2(heroX - this.x, heroY - this.y);
         }
     }
@@ -181,6 +184,11 @@ function Shot(posX, posY, vx, vy, rad){
     self.vx = vx,
     self.vy = vy,
     self.rad = rad;
+    self.speed = 300;
+    
+    var vecNorm = normalizeVector(vx, vy);
+    self.vx = vecNorm[0] * self.speed;
+    self.vy = vecNorm[1] * self.speed;
 }
 
 Shot.prototype.draw = function(ctx, balaImage) {
