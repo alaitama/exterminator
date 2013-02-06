@@ -9,8 +9,8 @@
     var topUIName = "top_ui";
     var bottomUIName = "bottom_ui";
     //Origianl sizes id game
-    var WIDTH = 450;
-    var HEIGHT = 600;
+    var WIDTH = 600
+    var HEIGHT = 450;
     var RATIO = null;
     //Original size of UI, saved because resized
     var topUIHeight = 20;
@@ -269,10 +269,10 @@
         //mouseY = e.clientY;
         mouseX = (e.offsetX || e.layerX) * scaledWidth;
         mouseY = (e.offsetY || e.layerY) * scaledHeight;
-        //mouseX = e.pageX - canvas.offsetLeft;
-        //mouseY = e.pageY - canvas.offsetTop;
-        //mouseX = (e.offsetX);
-        //mouseY = (e.offsetY);
+        mouseX = (e.pageX - canvas.offsetLeft) * scaledWidth;
+        mouseY = (e.pageY - canvas.offsetTop) * scaledHeight;
+        //mouseX = (e.offsetX || e.layerX);
+        //mouseY = (e.offsetY || e.layerY);
     };
     
     onDblClick = function(e) {
