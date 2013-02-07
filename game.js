@@ -7,6 +7,7 @@
     //VARIABLES GLOBALES
     var sectionName = "game";
     var topUIName = "top_ui";
+    var progressBarHero = null;
     var bottomUIName = "bottom_ui";
     //Origianl sizes id game
     var WIDTH = 600
@@ -29,6 +30,7 @@
     var iKeyPaused = 80; //p
     
     var PAUSED = false;
+    var POINTS = 0;
 
     //Mouse interact Hero
     var mouseX = 0;
@@ -139,6 +141,7 @@
         resizeGame();
         //loadCanvas('gameDiv');
         
+        initControls();
         initUI();
         
         fpsElement = document.getElementById('fps');
@@ -207,7 +210,7 @@
             
     };
     
-    initUI = function() {
+    initControls = function() {
         /*
         addEventListener("keydown", function (e) {
             keysDown[e.keyCode] = true;
@@ -231,22 +234,33 @@
             mouseY = e.clientY;
         }, true);
         */
-        $(window).on('resize', resizeGame);
+        
+        /*
         $('canvas').on('click', function(e) {
             console.log("e.client("+e.clientX+","+e.clientY+")");
             console.log("e.page("+e.pageX+","+e.pageY+")");
             console.log("e.offset("+e.offsetX+","+e.offsetY+")");
             console.log("e.layer("+e.layerX+","+e.layerY+")");
         });
+        */
+        $(window).on('resize', resizeGame);
         
         $('canvas').on('mousemove', onMouseMove);
         $('canvas').on('dblclick', onDblClick);
         $('canvas').on('mousedown', function(){ return false; }); //corrigue la seleccion de texto al doble click
-        
         $('canvas').on('focusout', onFocusOut);
-        
         $(document).on('keydown', onKeyDown);
+    }
+    
+    initUI = function() {
         
+        //Save to variables DOM Objetcs UI
+        progressBarHero = new ProgressBar(document.getElementById('progressBarHero'))
+		
+        //var bar2 = new ProgressBar(document.getElementById('progressBarLevel'))
+        //bar2.setPercentage(50);
+        
+                
         //Positions DIVs
         var gameCanvas = $('canvas');
         var splash = $('#splash');
@@ -267,8 +281,10 @@
         e.preventDefault();
         //mouseX = e.clientX;
         //mouseY = e.clientY;
-        mouseX = (e.offsetX || e.layerX) * scaledWidth;
-        mouseY = (e.offsetY || e.layerY) * scaledHeight;
+        //Funciona para Chrome, pero no en Firefox
+        //mouseX = (e.offsetX || e.layerX) * scaledWidth;
+        //mouseY = (e.offsetY || e.layerY) * scaledHeight;
+        //Funciona en Chrome y Firefox
         mouseX = (e.pageX - canvas.offsetLeft) * scaledWidth;
         mouseY = (e.pageY - canvas.offsetTop) * scaledHeight;
         //mouseX = (e.offsetX || e.layerX);
@@ -280,8 +296,10 @@
         
         //jumpX = e.clientX;
         //jumpY = e.clientY;
-        jumpX = (e.offsetX || e.layerX) * scaledWidth;
-        jumpY = (e.offsetY || e.layerY) * scaledHeight;
+        //jumpX = (e.offsetX || e.layerX) * scaledWidth;
+        //jumpY = (e.offsetY || e.layerY) * scaledHeight;
+        jumpX = (e.pageX - canvas.offsetLeft) * scaledWidth;
+        jumpY = (e.pageY - canvas.offsetTop) * scaledHeight;
             
         if(DEBUG)
             console.log("Jumped to: x=" + jumpX + ",y=" + jumpY);
@@ -344,46 +362,13 @@
         //Llamamos a procesos automaticos(equivale a setInterval manual)
         updateThreads();
         
-        //Si no esta saltando, giramos
-        if(jumpX==0 && jumpY==0) {
-            
-            //hero.radiansDraw = Math.atan2(mouseX - hero.x, mouseY - hero.y - hero.height);
-            hero.radians = Math.atan2(mouseX - hero.x, mouseY - hero.y);
-            //var degree = (radians * (180 / Math.PI) * -1) + 180; 
+        //UPDATE HERO
+        hero.update(mouseX, mouseY, jumpX, jumpY, modifier);
+        if(!hero.jumping) {
+            jumpX = 0;
+            jumpY = 0;
         }
-        //Si esta saltando movemos
-        else {
-            if(!hero.jumping) {
-                hero.jumping = true;
-                hero.vx = jumpX - hero.x;
-                hero.vy = jumpY - hero.y;
-
-                var vecNormalized = normalizeVector(hero.vx, hero.vy);
-                hero.vx = vecNormalized[0] * 300;
-                hero.vy = vecNormalized[1] * 300;
-                
-                ++hero.animFrame;
-                
-            }
-            
-            hero.x += hero.vx * modifier;
-            hero.y += hero.vy * modifier;
-            
-            hero.animTimer += modifier*1000;
-            if (hero.animTimer >= hero.animDelay) {
-                // Enough time has passed to update the animation frame
-                hero.animTimer = 0; // Reset the animation timer
-                ++hero.animFrame;
-                if (hero.animFrame >= hero.animNumFrames) {
-                    // We've reached the end of the animation frames; rewind
-                    hero.animFrame = 0;
-                    hero.jumping = false;
-                    jumpX = 0;
-                    jumpY = 0;
-                }
-            }
-            
-        }
+        
         
         for(var i=0;i<numMonsters;i++) {
             //monster_moving(monsterList[i], modifier);
@@ -394,6 +379,9 @@
 
         //Motor de deteccion de colisiones
         updateCollisions();
+        
+        //Update the UI
+        updateUI();
         
     };
     
@@ -431,6 +419,8 @@
                     balaListRemove.push(j);
                     monsterListRemove.push(i)
                     
+                    POINTS += currentMonster.points;
+                    
                 }
             }
         }
@@ -466,52 +456,17 @@
                 && currentMonster.y <= (hero.y + 32)
             ) {
                 ++monstersCaught;
+                hero.life--;
                 //reset();
             }
         }
     };
     
-    
-    //MONSTER_MOVIN
-    var monster_moving = function (monster, modifier) {
-        if (monster.incX) {
-            monster.x += monster.speed * modifier;
-            if (monster.x + monster.width >= WIDTH) {
-                monster.incX = false;
-            }
-        }
-        else {
-            monster.x -= monster.speed * modifier;
-            if (monster.x <= 0) {
-                monster.incX = true;
-            }
-        }
-
-        if (monster.incY) {
-            monster.y += monster.speed * modifier;
-            if (monster.y + monster.height >= HEIGHT) {
-                monster.incY = false;
-            }
-        } else {
-            monster.y -= monster.speed * modifier;
-            if (monster.y <= 0) {
-                monster.incY = true;
-            }
-        }
+    var updateUI = function() {
+        progressBarHero.setPercentage(hero.life / 10);
         
-        //Monster calc animSet
-        // Update hero animation
-        monster.animTimer += modifier * 1000;
-        if (monster.animTimer >= monster.animDelay) {
-            // Enough time has passed to update the animation frame
-            monster.animTimer = 0; // Reset the animation timer
-            ++monster.animFrame;
-            if (monster.animFrame >= monster.animNumFrames) {
-                // We've reached the end of the animation frames; rewind
-                monster.animFrame = 0;
-            }
-        }
-    };
+        document.getElementById('scoreDiv').innerHTML = POINTS;
+    }    
     
     //SHOOT
     function addShoot() {
@@ -535,12 +490,15 @@
     //NEW MONSTER
     function addMonster() {
         // Throw the monster somewhere on the screen randomly
+        /*
         var randx = 32 + (Math.random() * (canvas.width - 64));
         var randy = 32 + (Math.random() * (canvas.height - 64));
         var randIncX = Math.random() < 0.5 ? true : false;
         var randIncY = Math.random() < 0.5 ? true : false;
+        */
             
-        var newMonster = new  Monster(randx, randy, randIncX, randIncY);
+        var newMonster = new  Monster();
+        newMonster.initPosition(currentWidth, currentHeight);
         monsterList.push(newMonster);
         numMonsters++;
     }
