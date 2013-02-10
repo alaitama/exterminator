@@ -2,7 +2,77 @@
 body {
     margin: 0; 
     padding: 0; 
+    
+    background-color: #DDD;
+    color: #000;
+    text-align: center;
 }
 
-canvas { display: relative; margin: 0 auto; background: #fff; }
+#game {
+    border: 0px solid #000;
+/*
+	width: 600px;
+	height: 450px;
+*/
+    display: block; 
+    margin: auto; 
+    padding:auto;
+}
 
+canvas { 
+
+    display: block; 
+    margin: 0 auto; 
+    background: #fff; 
+
+    border: 0px solid #000;
+}
+
+/* INTERFAZ DE USUAIRO SUPERIOR */
+#top_ui {
+    font-size: 12px; 
+    width: 380px; 
+    height: 100%; 
+    border: 0px solid #000; 
+    text-align: center;
+    
+    margin: 0 auto;
+    /*
+    display: inline-block;
+    vertical-align: middle;
+    */
+}
+
+#progressBarHero {
+width: 25%; height: 70%; border:1px solid #000;
+/*display: inline-block; vertical-align: middle;*/
+float:left;
+}
+#scoreDiv {
+
+float:left;
+height: 70%;
+width: 45%;
+margin: 0 auto;
+text-align:center;
+}
+#progressBarLevel {
+float:right;
+width: 25%; height: 70%;border:1px solid #000;
+}
+
+
+#splash {
+    position: absolute;
+    z-index: 1;
+    display: none;
+    background-color: #FFF;
+    color: #000;
+    opacity: 0.0;
+    
+}
+
+/* VIEJO */
+#settings {
+	float:left;
+}

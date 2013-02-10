@@ -65,7 +65,7 @@
     };
     //heroImage.src = "./images/hero.png";
     //heroImage.src = "./images/heroe_sprite64.png";
-    heroImage.src = "./images/heroe_sprite57x64_color.png";
+    heroImage.src = "./images/heroe_sprite42x47.png";
 
     //Monster image
     var monsterReady = false;
@@ -92,7 +92,7 @@
     var monsterList = [];
     var numMonsters = 0;
     
-    var timerShoot = 200;
+    var timerShoot = 700;
     //var idShootThread = null;
     var lastAddShootTime = 0;
     
@@ -248,10 +248,9 @@
         $('canvas').on('mousemove', onMouseMove);
         $('canvas').on('dblclick', onDblClick);
         $('canvas').on('mousedown', function(){ return false; }); //corrigue la seleccion de texto al doble click
-        
         //Touch Events
-        $('canvas').bind('touchstart touchmove', onTouchMove);
-        $('canvas').doubleTap(onDoubleTouch);
+        $('touchstart touchmove tap', onTouchMove);
+        $('doubleTap', onDoubleTouch);
         
         $('canvas').on('focusout', onFocusOut);
         $(document).on('keydown', onKeyDown);
@@ -265,15 +264,8 @@
     };
     
     onDoubleTouch = function(e) {
-        //var clicX = e.data.touch.x1 || e.touch.x1 || e.x1 || e.touches[0].pageX;
-        //var clicY = e.data.touch.y1 || e.touch.y1 || e.y1 || e.touches[0].pageY;
-        jumpX = (e.data.touch.x1 - canvas.offsetLeft) * scaledWidth;
-        jumpY = (e.data.touch.y1 - canvas.offsetTop) * scaledHeight;
-        //jumpX = 10;
-        //jumpY = 10;
-        
-        if(DEBUG)
-            console.log("Jumped to: x=" + jumpX + ",y=" + jumpY);
+        jumpX = (e.touches[0].pageX - canvas.offsetLeft) * scaledWidth;
+        jumpY = (e.touches[0].pageY - canvas.offsetTop) * scaledHeight;
     };
     
     onMouseMove = function(e) {

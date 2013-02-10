@@ -1321,7 +1321,7 @@ window.Zepto = Zepto
 
       // double tap (tapped twice within 250ms)
       if (touch.isDoubleTap) {
-        touch.el.trigger('doubleTap', {touch: touch})
+        touch.el.trigger('doubleTap')
         touch = {}
 
       // swipe

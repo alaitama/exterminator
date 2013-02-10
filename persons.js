@@ -1,27 +1,35 @@
 /*
  * HERO CLASS
  */
-var Hero = function(posX, posY) {
+var Hero = function(posX, posY, sWidth, sHeight) {
     var self = this;
     self.x = posX,
 	self.y = posY,
-	self.width = 42,// 64,
-	self.height = 47, // 64,
+	self.width = 57, //42,// 64,
+	self.height = 64, //47, // 64,
 	self.radians = 0; 
     self.radiansDraw = 0;
 
     self.jumping = false;
     self.jumpSpeed = 300;
+    //Dimension where the Hero can move
+    self.areaWidth = sWidth;
+    self.areaHeight = sHeight;
     
     self.life = 1000;
     // Animation settings
     self.vx = 0,
     self.vy = 0,
-	self.animSet = 4,
-	self.animFrame = 0,
-	self.animNumFrames = 4,
-	self.animDelay = 200,
-	self.animTimer = 0;
+	//self.animSet = 4,
+    self.animShotFrame = 0,
+    self.animShotNumFrames = 2,
+    self.animShotDelay = 200,
+    self.animShotTimer = 0,
+    
+	self.animJumpFrame = 0,
+	self.animJumpNumFrames = 4,
+	self.animJumpDelay = 200,
+	self.animJumpTimer = 0;
     
 }
 
@@ -29,8 +37,13 @@ Hero.prototype.draw = function(ctx, heroImage) {
     var self = this;
     
     //console.log("DIBUJA " + self.x + ","+self.y)
-    
-    var spriteX = (this.animFrame * this.width);
+    var spriteX = 0;
+    if(self.jumping)
+        spriteX = (this.animJumpFrame * this.width);
+    else {
+        if(self.animShotFrame > 0)
+            spriteX = self.animJumpNumFrames * this.width;
+    }
     
     var centerHeroX = self.x;
     var centerHeroY = self.y;
@@ -67,6 +80,18 @@ Hero.prototype.update = function(mouseX, mouseY, jumpX, jumpY, modifier) {
     if(jumpX==0 && jumpY ==0) {
         self.radians = Math.atan2(mouseX - self.x, mouseY - self.y);
         //var degree = (radians * (180 / Math.PI) * -1) + 180; 
+        
+        self.animShotTimer += modifier*1000;
+        if (self.animShotTimer >= self.animShotDelay) {
+            // Enough time has passed to update the animation frame
+            self.animShotTimer = 0; // Reset the animation timer
+            ++self.animShotFrame;
+            if (self.animShotFrame >= self.animShotNumFrames) {
+                // We've reached the end of the animation frames; rewind
+                self.animShotFrame = 0;
+            }
+        }
+        
     }
     //Si esta saltando movemos
     else {
@@ -83,21 +108,33 @@ Hero.prototype.update = function(mouseX, mouseY, jumpX, jumpY, modifier) {
             self.vx = vecNormalized[0] * self.jumpSpeed;
             self.vy = vecNormalized[1] * self.jumpSpeed;
                     
-            ++self.animFrame;
+            ++self.animJumpFrame;
                     
         }
-                
+        
         self.x += self.vx * modifier;
         self.y += self.vy * modifier;
-                
-        self.animTimer += modifier*1000;
-        if (self.animTimer >= self.animDelay) {
+        
+        //Control if Hero out of screen
+        var middleWidth = self.width/2;
+        var middleHeight = self.height/2;
+        if(self.x < middleWidth)
+            self.x = middleWidth;
+        else if(self.x > self.areaWidth - middleWidth)
+            self.x = self.areaWidth - middleWidth;
+        else if(self.y < middleHeight)
+            self.y = middleHeight;
+        else if(self.y > self.areaHeight - middleHeight)
+            self.y = self.areaHeight - middleHeight;
+    
+        self.animJumpTimer += modifier*1000;
+        if (self.animJumpTimer >= self.animJumpDelay) {
             // Enough time has passed to update the animation frame
-            self.animTimer = 0; // Reset the animation timer
-            ++self.animFrame;
-            if (self.animFrame >= self.animNumFrames) {
+            self.animJumpTimer = 0; // Reset the animation timer
+            ++self.animJumpFrame;
+            if (self.animJumpFrame >= self.animJumpNumFrames) {
                 // We've reached the end of the animation frames; rewind
-                self.animFrame = 0;
+                self.animJumpFrame = 0;
                 console.log("JUMPING FALSE");
                 self.jumping = false;
             }
@@ -209,6 +246,8 @@ var Monster = function (){
     self.animDelay = 200;
     self.animTimer = 0;
     
+    self.counter = 0;
+    
     //initPosition(sWidth, sHeight);
 }
 
@@ -292,9 +331,10 @@ Monster.prototype.update = function(heroX, heroY, modifier) {
             
             this.vx = heroX - this.x;
             this.vy = heroY - this.y;
+            
             /*
-            this.vx = 0.5*Math.sin(this.radians);
-            this.vy = 0.5*Math.cos(this.radians);
+            this.waveX = this.vx + Math.cos(this.counter)*1000;
+            this.waveY = this.vy + Math.sin(this.counter)*1000;
             */
             
             var vecNorm = normalizeVector(this.vx, this.vy);
@@ -303,8 +343,11 @@ Monster.prototype.update = function(heroX, heroY, modifier) {
         }
     }
     
+    this.counter ++ ;
+    
     this.x = this.x + this.vx*modifier;
     this.y = this.y + this.vy*modifier;
+
     
 }
 

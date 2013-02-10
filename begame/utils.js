@@ -28,10 +28,29 @@ function calculateFps() {
 }
 */
 
-    
+
 function calculateFps(now, lastAnimationFrameTime) {
     
    var fps = 1000 / (now - lastAnimationFrameTime);
    return fps.toFixed(0);
    
-}
+};
+
+
+function normalizeVector(vx, vy) {
+    // Get absolute value of each vector
+    ax = Math.abs(vx);
+    ay = Math.abs(vy);
+
+    // Create a ratio
+    ratio = 1 / Math.max(ax, ay)
+    ratio = ratio * (1.29289 - (ax + ay) * ratio * 0.29289)
+
+    // Multiply by ratio
+    ax = vx * ratio;
+    ay = vy * ratio;
+    
+    //console.log("Normal de ("+vx+","+vy+") es ("+ax+","+ay+")");
+    
+    return [ax, ay];
+};
