@@ -221,12 +221,15 @@ Monster1.prototype.draw = function(ctx, monsterImage) {
  */
 var Monster = function (){
     var self = this;
+    
     self.width = 42,
     self.height = 50,
     
     self.x = 0,
     self.y = 0,
     self.radians = 0;
+    
+    self.deleted = false;
     
     self.points = 10;
     
@@ -366,9 +369,13 @@ function Shot(posX, posY, vx, vy, rad){
     self.rad = rad;
     self.speed = 300;
     
+    self.deleted = false;
+    
+    /*
     var vecNorm = normalizeVector(vx, vy);
     self.vx = vecNorm[0] * self.speed;
     self.vy = vecNorm[1] * self.speed;
+    */
 }
 
 Shot.prototype.draw = function(ctx, balaImage) {
@@ -378,6 +385,13 @@ Shot.prototype.draw = function(ctx, balaImage) {
     ctx.drawImage(balaImage,0 - balaImage.width/2 ,0 - balaImage.height/2);
     //ctx.drawImage(balaImage,0 ,0);
     ctx.restore();
+}
+
+Shot.prototype.update = function(modifier) {
+    var self = this;
+    self.x += self.vx * self.speed * modifier;
+    self.y += self.vy * self.speed * modifier;
+    
 }
 
 

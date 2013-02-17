@@ -1,0 +1,95 @@
+#game {
+    border: 0px solid #000;
+/*
+	width: 600px;
+	height: 450px;
+*/
+    background-color: #000;
+    
+    display: block; 
+    margin: auto; 
+    padding:auto;
+    
+    height: 100%;
+    
+    font-family: Denk One;
+}
+
+canvas { 
+
+    display: block; 
+    margin: 0 auto; 
+    background: #fff; 
+
+    border: 0px solid #000;
+}
+
+/* INTERFAZ DE USUAIRO SUPERIOR */
+#top_ui {
+    font-size: 12px; 
+    width: 380px; 
+    height: 100%; 
+    border: 0px solid #000; 
+    text-align: center;
+    
+    margin: 0 auto;
+    /*
+    display: inline-block;
+    vertical-align: middle;
+    */
+}
+#progressBarHero {
+    width: 25%; height: 70%; border:1px solid #000;
+    /*display: inline-block; vertical-align: middle;*/
+    float:left;
+}
+#scoreDiv {
+
+    float:left;
+    height: 70%;
+    width: 45%;
+    margin: 0 auto;
+    text-align:center;
+
+    font-size: 150%;
+}
+#progressBarLevel {
+    float:right;
+    width: 25%; height: 70%;border:1px solid #000;
+}
+
+/* --- INTERFAZ DE USUARIO INFERIOR --- */
+#bottom_ui {
+    
+}
+#option_buttons {
+    float:right; 
+    margin-top: 2px;
+    margin-right: 5px;
+}
+
+
+#splash {
+    position: absolute;
+    z-index: 1;
+    display: none;
+    /*background-color: #222;*/
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #FFF;
+    font-size: 250%;
+    
+    border-top: 2px solid #000;
+    border-bottom: 2px solid #000;
+
+    opacity: 0.0;
+    
+}
+
+
+@font-face {
+    font-family: 'Denk One';
+    src: url('../fonts/DenkOne.woff') format('woff'),
+         url('../fonts/DenkOne.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}

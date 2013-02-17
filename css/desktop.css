@@ -1,0 +1,39 @@
+
+body {
+    margin: 0; 
+    padding: 0; 
+    
+    background-color: #000;
+    color: #DDD;
+    text-align: center;
+
+}
+
+#mainwrap {
+
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    height: 100%;
+    
+    
+    background: url(../images/bgimage.jpg) repeat-x top;
+
+}
+
+#title {
+    padding-bottom: 40px;
+}
+
+#gameDiv {
+    border: 1px solid #000;
+    
+    margin: auto;
+    padding: auto;
+}
+
+
+/* VIEJO */
+#settings {
+	float:left;
+}

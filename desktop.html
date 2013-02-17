@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<html>
+<head>
+
+<title>Bug Exterminator</title>
+
+<meta name="viewport" content="width=device-width,
+    user-scalable=no, initial-scale=1, maximum-scale=1, user-scalable=0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+
+<link rel="stylesheet" href="css/desktop.css" type="text/css">
+<link href="css/game.css" rel="stylesheet" type="text/css" />
+<link href='http://fonts.googleapis.com/css?family=Ranchers' rel='stylesheet' type='text/css'>
+
+<script src="zepto.js"></script>
+<script src="rAF.js"></script>
+<script src="utils.js"></script>
+<script src="progressBar.js"></script>
+<script src="persons.js" type="text/javascript"></script>
+<script src="game.js"></script>		
+
+<script type="text/javascript">
+/*
+    window.onload = function() {
+        var bar = new ProgressBar(document.getElementById('progressBarHero'))
+        bar.setPercentage(25);
+		var bar2 = new ProgressBar(document.getElementById('progressBarLevel'))
+        bar2.setPercentage(50);
+    }
+*/
+    
+</script>
+
+</head>
+
+<body>
+<!--
+    <div id="header"><h1>Bug Exterminator</h1></div>
+-->    
+    <div id="mainwrap">
+    
+        <div id="title">
+            <center style="font-family: Ranchers; font-size: 40px; color: #0A2;">Bug&nbsp;
+            <span style="font-family: Denk One; font-size: 46px; color: #1F1F6A;">Exterminator</span>
+            </center>
+        </div>
+
+        <div id="gameDiv">
+            <section id="game">
+                <div id="top_ui">
+                    <div id="progressBarHero"></div>
+                    <div id="scoreDiv">123456</div>
+                    <div id="progressBarLevel"></div>
+                </div>
+                <canvas></canvas>
+                <div id="bottom_ui" style="margin: 0 auto; width: 380px; height:10px; background: #D95; border: 0px solid #000;">
+                
+                    <div id="option_buttons">
+                        <image id="btnPause" src="images/ui/btnPause.svg" type="image/svg+xml" />
+                    </div>
+                    
+                </div>
+                
+                <div id="splash">PAUSED</div>
+                
+            </section>
+        </div>
+
+        <div id="footer">
+        Created by Alberto Laita - <a href="http://ramsys.es">ramsys.es</a>
+        </div>
+
+    </div> <!-- fin mainwrap -->
+    
+    <script type="text/javascript">
+        //window.initGame();
+        window.addEventListener('load', window.initGame('desktop'), false);
+    </script>
+</body>
+
+</html>

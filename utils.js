@@ -54,3 +54,22 @@ function normalizeVector(vx, vy) {
     
     return [ax, ay];
 };
+
+
+CalculatorFPS = function() {
+  var lastFPS = 0;
+  var FPS = 0;
+
+  return {
+    calculateFPS: function(now, lastAnimationFrameTime) {
+        FPS = 1000 / (now - lastAnimationFrameTime);
+        FPS = FPS.toFixed(0);
+        if(lastFPS != 0) {
+            FPS = (lastFPS + FPS) / 2;
+        }
+    },
+    getFPS: function() {
+      return FPS;
+    }
+  }
+}();

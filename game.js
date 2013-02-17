@@ -3,19 +3,33 @@
 (function(ns){
     
     var DEBUG = true;
+    
+    //Variables calculo FPS
+    var showFPS = true;
+    var calculatorFPS = null;
+    var calculatedFPS = 0;
+    var lastFpsUpdateTime = 0;
 
     //VARIABLES GLOBALES
-    var sectionName = "game";
-    var topUIName = "top_ui";
-    var progressBarHero = null;
-    var bottomUIName = "bottom_ui";
+    
+    
     //Origianl sizes id game
     var WIDTH = 600
     var HEIGHT = 450;
     var RATIO = null;
+    var DEVICE = null; //if is Desktop or Mobile
+    
+    /* ----UI ELEMENTS and DOM Elements----- */
+    var sectionName = "game";
+    var topUIName = "top_ui";
+    var progressBarHero = null;
+    var progressBarLevel = null;
+    var bottomUIName = "bottom_ui";
+    var splashName = "splash";
+    
     //Original size of UI, saved because resized
-    var topUIHeight = 20;
-    var bottomUIHeight = 20;
+    var topUIHeight = 30;
+    var bottomUIHeight = 40;
     //Size of the game resized
     var currentWidth = null;
     var currentHeight = null;
@@ -42,9 +56,6 @@
     //Canvas element and Context
     var canvas;
     var ctx;
-    
-    //Element for FPS
-    var fpsElement = null;
 
     //Time refresh
     var lastAnimationFrameTime;
@@ -55,7 +66,8 @@
     bgImage.onload = function () {
         bgReady = true;
     };
-    bgImage.src = "./images/cement.jpg";
+    //bgImage.src = "./images/cement.jpg";
+    bgImage.src = "./images/bg.jpg";
 
     //Hero image
     var heroReady = false;
@@ -90,7 +102,10 @@
     //Variables globales
     var balaList = [];
     var monsterList = [];
-    var numMonsters = 0;
+    //var numMonsters = 0;
+    //Arrays for recicle objects
+    var deletedShotList = [];
+    var deletedMonsterList = [];
     
     var timerShoot = 200;
     //var idShootThread = null;
@@ -101,7 +116,9 @@
     //var idMonsterThread = null;
     var lastAddMonsterTime = 0;
     
-    var monstersCaught = 0;
+    //var monstersCaught = 0;
+    var monstersLevel = 100;
+    
         
     // Handle keyboard controls
     var keysDown = {};
@@ -117,7 +134,11 @@
     };
 
     // Let's play this game!
-    initGame = function () {
+    initGame = function (device) {
+        
+        DEVICE = device;
+        if(DEBUG)
+            console.log("Device="+DEVICE);
         
         // Create the canvas
         //canvas = document.createElement("canvas");
@@ -138,13 +159,12 @@
         canvas.height = HEIGHT - topUIHeight - bottomUIHeight;
         //canvas.height = HEIGHT;
         
+        
         resizeGame();
         //loadCanvas('gameDiv');
         
         initControls();
         initUI();
-        
-        fpsElement = document.getElementById('fps');
         
         reset();
         lastAnimationFrameTime = Date.now();
@@ -154,10 +174,20 @@
     };
     
     resizeGame = function() {
- 
-        currentHeight = window.innerHeight;
+        
+        if(DEVICE == 'desktop') {
+            var gameHeight = $('#'+sectionName).height();
+            currentHeight = gameHeight;
+            $('#gameDiv').height(gameHeight);
+            $('#gameDiv').width(gameHeight * RATIO);
+        }
+        else {
+            currentHeight = window.innerHeight;
+        }
+        
         // resize the width in proportion to the new height
         currentWidth = currentHeight * RATIO;
+        
         //Save scale ratio
         scaledWidth = WIDTH / currentWidth;
         scaledHeight = HEIGHT / currentHeight;
@@ -253,8 +283,25 @@
         $('canvas').bind('touchstart touchmove', onTouchMove);
         $('canvas').doubleTap(onDoubleTouch);
         
+        //UI Clicks/Touchs
+        $('#btnPause').on('mousedown', onClickPause)
+        
         $('canvas').on('focusout', onFocusOut);
         $(document).on('keydown', onKeyDown);
+    }
+    
+    onClickPause = function() {
+        if(PAUSED) {
+            $('#btnPause').attr("src", 'images/ui/btnPause.svg');
+            hidePauseSplash();
+        }
+        else {
+            $('#btnPause').attr("src", 'images/ui/btnPauseOn.svg');
+            showPauseSplash();
+        }
+        
+        PAUSED = !PAUSED;
+        
     }
     
     onTouchMove = function(e) {
@@ -322,36 +369,47 @@
     initUI = function() {
         
         //Save to variables DOM Objetcs UI
-        progressBarHero = new ProgressBar(document.getElementById('progressBarHero'))
-		
-        //var bar2 = new ProgressBar(document.getElementById('progressBarLevel'))
-        //bar2.setPercentage(50);
-        
+        progressBarHero = new ProgressBar(document.getElementById('progressBarHero'));
+        progressBarLevel = new ProgressBar(document.getElementById('progressBarLevel'));
+        progressBarLevel.setPercentage(100);
+        //calculatorFPS = CalculatorFPS();
                 
         //Positions DIVs
         var gameCanvas = $('canvas');
         var splash = $('#splash');
         var left = gameCanvas.css('left');
         var width = gameCanvas.css('width');
-        var height = 100;
-        var top = gameCanvas.css('top');
+        var height = 50;
+        var top = gameCanvas.offset().top;
         
         console.log(left + " " + top + " " + width + " " + height)
         splash.css('left',0);
-        splash.css('top',0);
+        splash.css('top', top + gameCanvas.height() / 2 - height / 2 );
         splash.css('width',width);
         splash.css('height',height);
         
     };
     
     showPauseSplash = function() {
-        $('#splash').css('opacity','1.0');
-        $('#splash').css('display','block');
+        /*
+        $('#' + splashName).css('opacity','1.0');
+        $('#' + splashName).css('display','block');
+        */
+        $('#' + splashName).animate({
+            opacity: 1.0
+        }, 300.0);
+        $('#' + splashName).css('display','block');
     }
     
     hidePauseSplash = function() {
-        $('#splash').css('opacity','0.0');
-        $('#splash').css('display','none');
+        /*
+        $('#' + splashName).css('opacity','0.0');
+        $('#' + splashName).css('display','none');
+        */
+        $('#' + splashName).animate({
+            opacity: 0.0
+        }, 10.0);
+        $('#' + splashName).css('display','none');
     }
     
     
@@ -364,7 +422,7 @@
         hero.x = canvas.width / 2;
         hero.y = canvas.height / 2;
 
-        numMonsters = 0;
+        //numMonsters = 0;
         monstersCaught = 0;
 
         /*
@@ -394,12 +452,13 @@
         }
         
         
-        for(var i=0;i<numMonsters;i++) {
+        for(var i=0;i<monsterList.length;i++) {
             //monster_moving(monsterList[i], modifier);
-            monsterList[i].update(hero.x, hero.y, modifier);
+            if(monsterList[i].deleted==false)
+                monsterList[i].update(hero.x, hero.y, modifier);
         }
         
-        shoot_moving(modifier);
+        updateShots(modifier);
 
         //Motor de deteccion de colisiones
         updateCollisions();
@@ -428,34 +487,50 @@
         //1.- Miramos si Balas tocan a Monsters
         var monsterListRemove = []; //Lista para elminar monsters tocados
         var balaListRemove = []; //Lista para eliminar balas que tocan monster
-        for(var i=0;i<numMonsters;i++) {
+        for(var i=0;i<monsterList.length;i++) {
             var currentMonster = monsterList[i];
-            
-            //Miramos si bala toca monster
-            for(var j=0;j<balaList.length;j++) {
-                var currentBala = balaList[j];
-                if(
-                    currentBala.x <= (currentMonster.x + currentMonster.width)
-                    && currentMonster.x <= (currentBala.x + currentBala.width)
-                    && currentBala.y <= (currentMonster.y + currentMonster.height)
-                    && currentMonster.y <= (currentBala.y + currentBala.width)
-                ) {
-                    balaListRemove.push(j);
-                    monsterListRemove.push(i)
-                    
-                    POINTS += currentMonster.points;
-                    
+            if(currentMonster.deleted==false) {
+                //Miramos si bala toca monster
+                for(var j=0;j<balaList.length;j++) {
+                    var currentBala = balaList[j];
+                    if(currentBala.deleted==false) {
+                        if(
+                            currentBala.x <= (currentMonster.x + currentMonster.width)
+                            && currentMonster.x <= (currentBala.x + currentBala.width)
+                            && currentBala.y <= (currentMonster.y + currentMonster.height)
+                            && currentMonster.y <= (currentBala.y + currentBala.height)
+                        ) {
+                            /*
+                            balaListRemove.push(j);
+                            monsterListRemove.push(i)
+                            */
+                            currentBala.deleted=true;
+                            currentMonster.deleted=true;
+                            deletedMonsterList.push(currentMonster);
+                            deletedShotList.push(currentBala);
+                            
+                            POINTS += currentMonster.points;
+                            monstersLevel--;
+                            
+                        }
+                    }
                 }
             }
         }
         //2.- Borra monsters tocados
+        /*
         if(monsterListRemove.length > 0) {
             for(var j=monsterListRemove.length-1;j>=0;j--) {
                 if(DEBUG)
                     console.log("Borrar " + monsterListRemove[j]);
-                if(monsterListRemove[j]!=undefined) 
-                    monsterList.splice(monsterListRemove[j],1);
+                if(monsterListRemove[j]!=undefined) {
+                    var delMonster = monsterList[monsterListRemove[j]];
+                    //monsterList.splice(monsterListRemove[j],1);
+                    delMonster.deleted=true;
+                    if(delMonster!=undefined)
+                        deletedMonsterList.push(delMonster);
                     numMonsters --;
+                }
             }
         }
         //3.- Borra balas que tocan monster
@@ -463,33 +538,51 @@
             for(var j=balaListRemove.length-1;j>=0;j--) {
                 if(DEBUG)
                     console.log("Borrar " + balaListRemove[j]);
-                if(balaListRemove[j]!=undefined) 
-                    balaList.splice(balaListRemove[j],1);
+                if(balaListRemove[j]!=undefined) {
+                    var delShot = balaList[balaListRemove[j]];
+                    //balaList.splice(balaListRemove[j],1);
+                    delShot.deleted=true;
+                    if(delShot!=undefined)
+                        deletedShotList.push(delShot);
+                }
             }
         }
+        */
         
         //4.- Miramos monsters tocan heroe
-        for(var i=0;i<numMonsters;i++) {
+        for(var i=0;i<monsterList.length;i++) {
             var currentMonster = monsterList[i];
-            
-            //Miramos si monster toca heroe
-            if (
-                hero.x <= (currentMonster.x + currentMonster.width)
-                && currentMonster.x <= (hero.x + 32)
-                && hero.y <= (currentMonster.y + currentMonster.height)
-                && currentMonster.y <= (hero.y + 32)
-            ) {
-                ++monstersCaught;
-                hero.life--;
-                //reset();
+            if(currentMonster.deleted==false) {
+                //Miramos si monster toca heroe
+                if (
+                    hero.x <= (currentMonster.x + currentMonster.width)
+                    && currentMonster.x <= (hero.x + 32)
+                    && hero.y <= (currentMonster.y + currentMonster.height)
+                    && currentMonster.y <= (hero.y + 32)
+                ) {
+                    //++monstersCaught;
+                    hero.life--;
+                    //reset();
+                }
             }
         }
     };
     
     var updateUI = function() {
         progressBarHero.setPercentage(hero.life / 10);
+        progressBarLevel.setPercentage(monstersLevel);
         
         document.getElementById('scoreDiv').innerHTML = POINTS;
+        
+        if(showFPS) {
+            var now = Date.now();
+            if (now - lastFpsUpdateTime > 1000) {
+                lastFpsUpdateTime = now;
+                //document.getElementById('fpsDiv').innerHTML = CalculatorFPS.getFPS() + " fps";
+                calculatedFPS = CalculatorFPS.getFPS();
+            }
+        }
+        
     }    
     
     //SHOOT
@@ -502,8 +595,23 @@
             var vy = mouseY - hero.y;
             var rad = hero.radians;
             
-            var newBala = new Shot(x,y,vx,vy,rad);
-            balaList.push(newBala);	
+            //Normalize vector
+            var vecNorm = normalizeVector(vx, vy);
+            vx = vecNorm[0], vy = vecNorm[1];
+            
+            var newShot = null;
+            if(deletedShotList.length>0) {
+                console.log("Recicla");
+                newShot = deletedShotList.pop();
+                if(newShot!=undefined) {
+                    newShot.x = x, newShot.y=y, newShot.vx=vx,newShot.vy=vy,newShot.rad=rad;
+                    newShot.deleted=false;
+                }
+            }
+            else {
+                newShot = new Shot(x,y,vx,vy,rad);
+                balaList.push(newShot);
+            }
             
             if(DEBUG)
                 console.log("Num balas: " + balaList.length);
@@ -520,43 +628,62 @@
         var randIncX = Math.random() < 0.5 ? true : false;
         var randIncY = Math.random() < 0.5 ? true : false;
         */
-            
-        var newMonster = new  Monster();
+        var newMonster = null;
+        if(deletedMonsterList.length>0) {
+            newMonster = deletedMonsterList.pop();
+            newMonster.deleted=false;
+        }
+        else {
+            newMonster = new  Monster();
+            monsterList.push(newMonster);
+        }
         newMonster.initPosition(currentWidth, currentHeight);
-        monsterList.push(newMonster);
-        numMonsters++;
+        
+        //numMonsters++;
     }
     
     
     //SHOOT_MOVING
-    var shoot_moving = function (modifier) {
+    var updateShots = function (modifier) {
         
         var numBalas = balaList.length;
-        var balaListRemove = [];
+        //var balaListRemove = [];
         
         for(var i=0;i<numBalas;i++) {
-            var currentBala = balaList[i]
-            currentBala.x += currentBala.vx * modifier;
-            currentBala.y += currentBala.vy * modifier;
-            
-            //console.log(currentBala.x + ", " + currentBala.y);
-            
-            if(currentBala.x < 0 || currentBala.x > WIDTH)
-                balaListRemove.push(i);
-            else if(currentBala.y < 0 || currentBala.y > HEIGHT)
-                balaListRemove.push(i);
+            var currentBala = balaList[i];
+            if(currentBala.deleted==false) {
+                currentBala.update(modifier);
+                
+                //console.log(currentBala.x + ", " + currentBala.y);
+                
+                if(currentBala.x < 0 || currentBala.x > WIDTH  || currentBala.y < 0 || currentBala.y > HEIGHT) {
+                    //balaListRemove.push(i);
+                    currentBala.deleted=true;
+                    if(currentBala!=undefined)
+                        deletedShotList.push(currentBala);
+                }
+            }
             
         }
         //Remove balas out screen
         //console.log(balaListRemove.length);
+        /*
         if(balaListRemove.length > 0) {
             for(var j=balaListRemove.length-1;j>=0;j--) {
                 if(DEBUG)
                     console.log("Borrar " + balaListRemove[j]);
-                if(balaListRemove[j]!=undefined) 
-                    balaList.splice(balaListRemove[j],1);
+                if(balaListRemove[j]!=undefined) {
+                    var delShot = balaList[balaListRemove[j]];
+                    //console.log("Borrado " + delShot);
+                    //balaList.splice(balaListRemove[j],1);
+                    delShot.deleted=true;
+                    if(delShot!=undefined)
+                        deletedShotList.push(delShot);
+                    //console.log("Borrado2 " + delShot);
+                }
             }
         }
+        */
     };
     
     // Draw everything
@@ -569,8 +696,9 @@
 
         
         if (monsterReady) {
-            for(var i=0;i<numMonsters;i++) {
-                monsterList[i].draw(ctx, monsterImage);
+            for(var i=0;i<monsterList.length;i++) {
+                if(monsterList[i].deleted==false)
+                    monsterList[i].draw(ctx, monsterImage);
             }
         }
         
@@ -578,7 +706,8 @@
             var numBalas = balaList.length;
             
             for(var i=0;i<numBalas;i++) {
-                balaList[i].draw(ctx, balaImage);
+                if(balaList[i].deleted==false)
+                    balaList[i].draw(ctx, balaImage);
             }
         }
         
@@ -589,35 +718,26 @@
         }
 
         // Score
-        ctx.fillStyle = "rgb(250, 250, 250)";
-        ctx.font = "12px Helvetica";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "top";
-        ctx.fillText("Goblins caught: " + monstersCaught, 1, 1);
+        if(showFPS) {
+            ctx.fillStyle = "rgb(250, 250, 250)";
+            ctx.font = "12px Helvetica";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "top";
+            ctx.fillText(calculatedFPS + " fps", 1, 1);
+        }
     };
     
-    /*
-     * Carga elemento DOM fps cada segundo
-     */
-    var lastFpsUpdateTime = 0;
-    function loadFps(now) {
-	   if (now - lastFpsUpdateTime > 1000) {
-		  lastFpsUpdateTime = now;
-		  fpsElement.innerHTML = calculateFps(now, lastAnimationFrameTime) + ' fps';
-	   }
-
-	   //return fps;
-	}
     
     // The main game loop
     var main = function () {
         var now = Date.now();
         var delta = now - lastAnimationFrameTime;
         
-        if(fpsElement!=null && fpsElement!=undefined)
-            loadFps(now);
         
         if(!PAUSED) {
+            
+            CalculatorFPS.calculateFPS(now, lastAnimationFrameTime);
+            
             update(delta / 1000);
             render();
         }
