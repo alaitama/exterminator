@@ -241,7 +241,18 @@ var Monster = function (){
     self.stopTimer = 0,
     self.stopDelay = 2000,
     self.vx = 0,
-    self.vy = 0;
+    self.vy = 0,
+    //Attack variables
+    self.attackTimer = 0,
+    self.attackDelay = 400,
+    self.attackNumFrames = 2,
+    self.attackFrameDelay = 200,
+    self.attacking = false,
+    self.attack = false,
+    //Die variables
+    self.dieTimer = 0,
+    self.dieDelay = 200,
+    self.dead = false;
     
     //Animation 
     self.animFrame = 0;
@@ -265,21 +276,26 @@ Monster.prototype.draw = function(ctx, monsterImage) {
 		(this.animFrame * this.width)
 	);
     */
+    
+    if(!self.attacking) {
+        var spriteX = (0 * this.width);
+            
+        // Render image to canvas
+        ctx.save();
+        ctx.translate(self.x, self.y); 
+        ctx.rotate(-self.radians); 
+            
+        ctx.drawImage(
+            monsterImage,
+            spriteX, 0, self.width, self.height,
+            0 - self.width/2, 0 - self.height/2, self.width, self.height
+        );
+        ctx.restore();
+    }
+    //if attacking draw attack
+    else {
         
-    var spriteX = (0 * this.width);
-        
-    // Render image to canvas
-    ctx.save();
-    ctx.translate(self.x, self.y); 
-    ctx.rotate(-self.radians); 
-        
-    ctx.drawImage(
-        monsterImage,
-        spriteX, 0, self.width, self.height,
-        0 - self.width/2, 0 - self.height/2, self.width, self.height
-    );
-    ctx.restore();
-        
+    }
 	
 }
 
@@ -318,39 +334,84 @@ Monster.prototype.initPosition = function(sWidth, sHeight) {
 }
 
 Monster.prototype.update = function(heroX, heroY, modifier) {
-    this.noChangeDirTimer += modifier*1000;
-    //var newNoChangeDirDelay = Math.random()*1.8*this.noChangeDirDelay;
-    if (this.noChangeDirTimer >= this.noChangeDirDelay) {
-        // Enough time has passed to update the animation frame
-        this.stopTimer += modifier*1000;
-        this.vx = 0, this.vy = 0;
-        //var newStopDelay = Math.random()*2*this.stopDelay;
-        if(this.stopTimer >= this.stopDelay) {
-            this.noChangeDirTimer = 0; // Reset the animation timer
-            this.stopTimer = 0;
+    
+    var delay = modifier*1000;
+    
+    //If the delay of line moving is over, if then reset direction
+    if(!attacking) {
+        this.noChangeDirTimer += delay;
+        if (this.noChangeDirTimer >= this.noChangeDirDelay) {
+            // Enough time has passed to update the animation frame
+            this.stopTimer += delay;
+            this.vx = 0, this.vy = 0;
+            //If delay of pause moving is over,if then recalcule new direction
+            if(this.stopTimer >= this.stopDelay) {
+                this.noChangeDirTimer = 0; // Reset the animation timer
+                this.stopTimer = 0;
+                
+                
+                this.radians = Math.atan2(heroX - this.x, heroY - this.y);
+                
+                this.vx = heroX - this.x;
+                this.vy = heroY - this.y;
+                
+                /*
+                this.waveX = this.vx + Math.cos(this.counter)*1000;
+                this.waveY = this.vy + Math.sin(this.counter)*1000;
+                */
+                
+                var vecNorm = normalizeVector(this.vx, this.vy);
+                this.vx = vecNorm[0] * this.speed;
+                this.vy = vecNorm[1] * this.speed;
+            }
+        }
+        
+        var newX = this.x + this.vx*modifier;
+        var newY = this.y + this.vy*modifier;
+        
+        /* -- CONTROL COLLISION WITH HERO --*/
+        var exceedX = false;
+        var exceedY = false;
+        //If vx is +, and new X pos exceeds heroX
+        if(this.vx > 0 && newX+this.width > heroX) {
+            exceedX = true;
+        }
+        //If vx is -, and new X pos exceeds heroX
+        else if(this.vx < 0 && newX-this.width < heroX) {
+            exceedX = true;
+        }
+        
+        //If vy is +, and new Y pos exceeds heroY
+        if(this.vy > 0 && newY+this.height > heroY) {
+            exceedY = true;
+        }
+        //If vx is -, and new X pos exceeds heroX
+        else if(this.vy < 0 && newY-this.height < heroY) {
+            exceedY = true;
+        }
+        //If exceed X and Y...is on hero
+        if(exceedX && exceedY) {
+            this.attacking = true;
+            this.vx = 0;
+            this.vy = 0;
             
-            
-            this.radians = Math.atan2(heroX - this.x, heroY - this.y);
-            
-            this.vx = heroX - this.x;
-            this.vy = heroY - this.y;
-            
-            /*
-            this.waveX = this.vx + Math.cos(this.counter)*1000;
-            this.waveY = this.vy + Math.sin(this.counter)*1000;
-            */
-            
-            var vecNorm = normalizeVector(this.vx, this.vy);
-            this.vx = vecNorm[0] * this.speed;
-            this.vy = vecNorm[1] * this.speed;
+        }
+        //If no exceed update moving positions
+        else {
+            this.x = this.x + this.vx*modifier;
+            this.y = this.y + this.vy*modifier;
+        }
+    }
+    //If attacking, do nothing about movement, only attack
+    else {
+        this.attackTimer += delay;
+        //If attack delay over, finish the beaten
+        if(this.attackTimer > this.attackDelay) {
+            this.attack = true;            
         }
     }
     
-    this.counter ++ ;
-    
-    this.x = this.x + this.vx*modifier;
-    this.y = this.y + this.vy*modifier;
-
+    //this.counter ++ ;
     
 }
 
