@@ -338,7 +338,7 @@ Monster.prototype.update = function(heroX, heroY, modifier) {
     var delay = modifier*1000;
     
     //If the delay of line moving is over, if then reset direction
-    if(!attacking) {
+    if(!this.attacking) {
         this.noChangeDirTimer += delay;
         if (this.noChangeDirTimer >= this.noChangeDirDelay) {
             // Enough time has passed to update the animation frame
