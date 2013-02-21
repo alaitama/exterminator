@@ -454,8 +454,19 @@
         
         for(var i=0;i<monsterList.length;i++) {
             //monster_moving(monsterList[i], modifier);
-            if(monsterList[i].deleted==false)
-                monsterList[i].update(hero.x, hero.y, modifier);
+            
+            var currentMonster = monsterList[i];
+            if(currentMonster.deleted==false) {
+                currentMonster.update(hero.x, hero.y, modifier);
+                
+                //Si monster is completly dead, add to garbage list
+                if(currentMonster.dead) {
+                    if(DEBUG) 
+                        console.log("Eliminamos Monster");
+                    currentMonster.deleted = true;
+                    deletedMonsterList.push(currentMonster);
+                }
+            }
         }
         
         updateShots(modifier);
@@ -489,7 +500,7 @@
         var balaListRemove = []; //Lista para eliminar balas que tocan monster
         for(var i=0;i<monsterList.length;i++) {
             var currentMonster = monsterList[i];
-            if(currentMonster.deleted==false) {
+            if(currentMonster.deleted==false && currentMonster.dying==false) {
                 //Miramos si bala toca monster
                 for(var j=0;j<balaList.length;j++) {
                     var currentBala = balaList[j];
@@ -504,10 +515,16 @@
                             balaListRemove.push(j);
                             monsterListRemove.push(i)
                             */
-                            currentBala.deleted=true;
+                            
+                            /*
                             currentMonster.deleted=true;
                             deletedMonsterList.push(currentMonster);
+                            */
+                            currentMonster.dying = true;
+                            
+                            currentBala.deleted=true;
                             deletedShotList.push(currentBala);
+                            
                             
                             POINTS += currentMonster.points;
                             monstersLevel--;
@@ -552,8 +569,9 @@
         //4.- Miramos monsters tocan heroe
         for(var i=0;i<monsterList.length;i++) {
             var currentMonster = monsterList[i];
-            if(currentMonster.deleted==false) {
+            if(currentMonster.deleted==false && currentMonster.dying==false) {
                 //Miramos si monster toca heroe
+                /*
                 if (
                     hero.x <= (currentMonster.x + currentMonster.width)
                     && currentMonster.x <= (hero.x + 32)
@@ -563,6 +581,21 @@
                     //++monstersCaught;
                     hero.life--;
                     //reset();
+                }*/
+                //Miramos si monster ataca
+                if(currentMonster.attack) {
+                    //Si se estan tocando el ataque resta vida a heroe
+                    if (
+                    hero.x <= (currentMonster.x + currentMonster.width)
+                    && currentMonster.x <= (hero.x + hero.width)
+                    && hero.y <= (currentMonster.y + currentMonster.height)
+                    && currentMonster.y <= (hero.y + hero.height)
+                    ) {
+                        hero.life -= currentMonster.hitPoints;
+                    }
+                    //Reset monster attack
+                    currentMonster.attacking=false;
+                    currentMonster.attack=false;
                 }
             }
         }
@@ -632,12 +665,15 @@
         if(deletedMonsterList.length>0) {
             newMonster = deletedMonsterList.pop();
             newMonster.deleted=false;
+            if(DEBUG)
+                console.log("Recicla monster");
         }
         else {
             newMonster = new  Monster();
             monsterList.push(newMonster);
         }
         newMonster.initPosition(currentWidth, currentHeight);
+        newMonster.resetStates();
         
         //numMonsters++;
     }
