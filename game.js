@@ -14,7 +14,7 @@
     
     
     //Origianl sizes id game
-    var WIDTH = 600
+    var WIDTH = 600;
     var HEIGHT = 450;
     var RATIO = null;
     var DEVICE = null; //if is Desktop or Mobile
@@ -241,38 +241,7 @@
     };
     
     initControls = function() {
-        /*
-        addEventListener("keydown", function (e) {
-            keysDown[e.keyCode] = true;
-        }, false);
 
-        addEventListener("keyup", function (e) {
-            delete keysDown[e.keyCode];
-        }, false);
-                
-        
-        canvas.addEventListener('dblclick', function(e) {
-            jumpX = e.clientX;
-            jumpY = e.clientY;
-            
-            if(DEBUG)
-                console.log("Jumped to: x=" + jumpX + ",y=" + jumpY);
-        }, true);
-
-        canvas.addEventListener('mousemove', function(e) {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        }, true);
-        */
-        
-        /*
-        $('canvas').on('click', function(e) {
-            console.log("e.client("+e.clientX+","+e.clientY+")");
-            console.log("e.page("+e.pageX+","+e.pageY+")");
-            console.log("e.offset("+e.offsetX+","+e.offsetY+")");
-            console.log("e.layer("+e.layerX+","+e.layerY+")");
-        });
-        */
         $(window).on('resize', resizeGame);
         //Mouse Events
         $('canvas').on('mousemove', onMouseMove);
@@ -312,12 +281,8 @@
     };
     
     onDoubleTouch = function(e) {
-        //var clicX = e.data.touch.x1 || e.touch.x1 || e.x1 || e.touches[0].pageX;
-        //var clicY = e.data.touch.y1 || e.touch.y1 || e.y1 || e.touches[0].pageY;
         jumpX = (e.data.touch.x1 - canvas.offsetLeft) * scaledWidth;
         jumpY = (e.data.touch.y1 - canvas.offsetTop) * scaledHeight;
-        //jumpX = 10;
-        //jumpY = 10;
         
         if(DEBUG)
             console.log("Jumped to: x=" + jumpX + ",y=" + jumpY);
@@ -325,25 +290,22 @@
     
     onMouseMove = function(e) {
         e.preventDefault();
-        //mouseX = e.clientX;
-        //mouseY = e.clientY;
+
         //Funciona para Chrome, pero no en Firefox
         //mouseX = (e.offsetX || e.layerX) * scaledWidth;
         //mouseY = (e.offsetY || e.layerY) * scaledHeight;
         //Funciona en Chrome y Firefox
         mouseX = (e.pageX - canvas.offsetLeft) * scaledWidth;
         mouseY = (e.pageY - canvas.offsetTop) * scaledHeight;
-        //mouseX = (e.offsetX || e.layerX);
-        //mouseY = (e.offsetY || e.layerY);
     };
     
     onDblClick = function(e) {
         e.preventDefault();
         
-        //jumpX = e.clientX;
-        //jumpY = e.clientY;
+        //Funciona para Chrome, pero no en Firefox
         //jumpX = (e.offsetX || e.layerX) * scaledWidth;
         //jumpY = (e.offsetY || e.layerY) * scaledHeight;
+        //Funciona en Chrome y Firefox
         jumpX = (e.pageX - canvas.offsetLeft) * scaledWidth;
         jumpY = (e.pageY - canvas.offsetTop) * scaledHeight;
             
@@ -424,17 +386,6 @@
 
         //numMonsters = 0;
         monstersCaught = 0;
-
-        /*
-        if(idMonsterThread!=null) {
-            window.clearInterval(idMonsterThread);
-        }
-        idMonsterThread = setInterval(addMonster, timerMonster);
-        
-        if(idShootThread!=null)
-			window.clearInterval(idShootThread);
-        idShootThread = setInterval(shoot, timerShoot);
-        */
         
     };
     
@@ -534,55 +485,12 @@
                 }
             }
         }
-        //2.- Borra monsters tocados
-        /*
-        if(monsterListRemove.length > 0) {
-            for(var j=monsterListRemove.length-1;j>=0;j--) {
-                if(DEBUG)
-                    console.log("Borrar " + monsterListRemove[j]);
-                if(monsterListRemove[j]!=undefined) {
-                    var delMonster = monsterList[monsterListRemove[j]];
-                    //monsterList.splice(monsterListRemove[j],1);
-                    delMonster.deleted=true;
-                    if(delMonster!=undefined)
-                        deletedMonsterList.push(delMonster);
-                    numMonsters --;
-                }
-            }
-        }
-        //3.- Borra balas que tocan monster
-        if(balaListRemove.length > 0) {
-            for(var j=balaListRemove.length-1;j>=0;j--) {
-                if(DEBUG)
-                    console.log("Borrar " + balaListRemove[j]);
-                if(balaListRemove[j]!=undefined) {
-                    var delShot = balaList[balaListRemove[j]];
-                    //balaList.splice(balaListRemove[j],1);
-                    delShot.deleted=true;
-                    if(delShot!=undefined)
-                        deletedShotList.push(delShot);
-                }
-            }
-        }
-        */
         
-        //4.- Miramos monsters tocan heroe
+        //2.- Miramos monsters tocan heroe
         for(var i=0;i<monsterList.length;i++) {
             var currentMonster = monsterList[i];
             if(currentMonster.deleted==false && currentMonster.dying==false) {
-                //Miramos si monster toca heroe
-                /*
-                if (
-                    hero.x <= (currentMonster.x + currentMonster.width)
-                    && currentMonster.x <= (hero.x + 32)
-                    && hero.y <= (currentMonster.y + currentMonster.height)
-                    && currentMonster.y <= (hero.y + 32)
-                ) {
-                    //++monstersCaught;
-                    hero.life--;
-                    //reset();
-                }*/
-                //Miramos si monster ataca
+                //Si montster ataca, miramos si se tocan 
                 if(currentMonster.attack) {
                     //Si se estan tocando el ataque resta vida a heroe
                     if (
@@ -699,27 +607,7 @@
                         deletedShotList.push(currentBala);
                 }
             }
-            
         }
-        //Remove balas out screen
-        //console.log(balaListRemove.length);
-        /*
-        if(balaListRemove.length > 0) {
-            for(var j=balaListRemove.length-1;j>=0;j--) {
-                if(DEBUG)
-                    console.log("Borrar " + balaListRemove[j]);
-                if(balaListRemove[j]!=undefined) {
-                    var delShot = balaList[balaListRemove[j]];
-                    //console.log("Borrado " + delShot);
-                    //balaList.splice(balaListRemove[j],1);
-                    delShot.deleted=true;
-                    if(delShot!=undefined)
-                        deletedShotList.push(delShot);
-                    //console.log("Borrado2 " + delShot);
-                }
-            }
-        }
-        */
     };
     
     // Draw everything
@@ -762,6 +650,25 @@
             ctx.fillText(calculatedFPS + " fps", 1, 1);
         }
     };
+    
+    /* --- FUNCTIONS ABOUT ROUNDS GAME --- */
+    var ROUND = 0;
+    var startRound = function() {
+        ROUND ++;
+        timerMonster -= 100;
+    }
+    
+    var restartObjects = function() {
+        //Borramos todos los monstruos, muriendo y vivos
+        for(var i=0;i<monsterList.length;i++) {
+            var currentMonster = monsterList[i];
+            if(!currentMonster.deleted) {
+                currentMonster.resetStates();
+                currentMonster.deleted=true;
+                deletedMonsterList.push(currentMonster);
+            }
+        }
+    }
     
     
     // The main game loop

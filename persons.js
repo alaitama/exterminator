@@ -252,7 +252,7 @@ var Monster = function (){
     self.attack = false,
     //Die variables
     self.dieTimer = 0,
-    self.dieDelay = 30000,
+    self.dieDelay = 5000,
     self.dying = false,
     self.dead = false;
     
@@ -288,7 +288,7 @@ Monster.prototype.draw = function(ctx, monsterImage) {
         ctx.translate(self.x, self.y); 
         ctx.rotate(-self.radians); 
         //works with images
-        ctx.globalAlpha = 0.5
+        ctx.globalAlpha = 1 - (self.dieTimer / self.dieDelay);
                 
         ctx.drawImage(
             monsterImage,
