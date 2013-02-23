@@ -84,6 +84,11 @@ canvas {
 
     opacity: 0.0;
     
+    color: #fff;
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 10px #56FF2D, 0 0 30px #56FF2D, 0 0 40px #56FF2D, 0 0 50px #56FF2D, 0 0 75px #56FF2D;
+    letter-spacing: 5px;
+    /*font: 50px 'MisoRegular';*/
+    
 }
 
 

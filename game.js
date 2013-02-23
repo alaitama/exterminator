@@ -374,6 +374,33 @@
         $('#' + splashName).css('display','none');
     }
     
+    showRoundSplash = function() {
+        var tmpFinish = false;
+        //Show ROUND number and hide
+        $('#' + splashName).html("ROUND " + ROUND);
+        
+        $('#' + splashName).animate({ opacity: 1.0 }, 300.0, "ease", function() {
+            console.log("1");
+            $('#' + splashName).css('display','block');
+            $('#' + splashName).animate({ opacity: 0.0 }, 50.0, "ease", function() {
+                console.log("2");
+                //Show GO message
+                $('#' + splashName).html("GO!");
+                $('#' + splashName).animate({ opacity: 1.0 }, 50.0, "ease", function() {
+                    console.log("3");
+                    $('#' + splashName).animate({ opacity: 0.0 }, 50.0, "ease", function() {     
+                        $('#' + splashName).css('display','none');   
+                        tmpFinish = true;
+                    });
+                });
+            });
+        });
+        
+        //while(!tmpFinish) {}
+        
+        console.log("AAAAAAAAAAAAAAAAAAAAAAAAAA");
+    }
+    
     
     
     // Reset the game when the player catches a monster
@@ -385,7 +412,11 @@
         hero.y = canvas.height / 2;
 
         //numMonsters = 0;
-        monstersCaught = 0;
+        //monstersCaught = 0;
+        PAUSED = true;
+        startRound();
+        showRoundSplash();
+        PAUSED = false;
         
     };
     

@@ -238,27 +238,29 @@ var Monster = function (){
     self.speed = 200,
     self.plusMinus = false,
     self.noChangeDirTimer = 0,
-    self.noChangeDirDelay = 400,
+    self.noChangeDirDelay = 358,
     self.stopTimer = 0,
-    self.stopDelay = 2000,
+    self.stopDelay = 1956,
     self.vx = 0,
     self.vy = 0,
     //Attack variables
     self.attackTimer = 0,
-    self.attackDelay = 2000,
+    self.attackDelay = 400,
+    self.attackFrame = 0,
     self.attackNumFrames = 2,
+    self.attackFrameTimer = 0,
     self.attackFrameDelay = 200,
     self.attacking = false,
     self.attack = false,
     //Die variables
     self.dieTimer = 0,
-    self.dieDelay = 5000,
+    self.dieDelay = 35000,
     self.dying = false,
     self.dead = false;
     
     //Animation 
     self.animFrame = 0;
-    self.animNumFrames = 4;
+    self.animNumFrames = 3;
     self.animDelay = 200;
     self.animTimer = 0;
     
@@ -281,7 +283,7 @@ Monster.prototype.draw = function(ctx, monsterImage) {
     
     //Si esta muerto lo dibujamos muerto
     if(self.dying) {
-        var spriteX = (0 * this.width);
+        var spriteX = (6 * this.width);
         
         // Render image to canvas
         ctx.save();
@@ -300,7 +302,7 @@ Monster.prototype.draw = function(ctx, monsterImage) {
     //En caso de que no este muriendo, resto
     else {
         if(!self.attacking) {
-            var spriteX = (0 * this.width);
+            var spriteX = (this.animFrame * this.width);
                 
             // Render image to canvas
             ctx.save();
@@ -316,7 +318,7 @@ Monster.prototype.draw = function(ctx, monsterImage) {
         }
         //if attacking draw attack
         else {
-            var spriteX = (0 * this.width);
+            var spriteX = (this.attackFrame+4 * this.width);
             // Render image to canvas
             ctx.save();
             ctx.translate(self.x, self.y); 
@@ -388,6 +390,7 @@ Monster.prototype.update = function(heroX, heroY, modifier) {
                 // Enough time has passed to update the animation frame
                 this.stopTimer += delay;
                 this.vx = 0, this.vy = 0;
+                
                 //If delay of pause moving is over,if then recalcule new direction
                 if(this.stopTimer >= this.stopDelay) {
                     this.noChangeDirTimer = 0; // Reset the animation timer
@@ -408,6 +411,16 @@ Monster.prototype.update = function(heroX, heroY, modifier) {
                     this.vx = vecNorm[0] * this.speed;
                     this.vy = vecNorm[1] * this.speed;
                 }
+            }
+            
+            if(this.vx!=0 || this.vy !=0) {
+                this.animTimer += delay;
+                if(this.animTimer > this.animDelay) {
+                    this.animTimer = 0;
+                    this.animFrame++;
+                    if(this.animFrame > this.animNumFrames)
+                        this.animFrame=0;
+                    }
             }
             
             var newX = this.x + this.vx*modifier;
@@ -449,12 +462,21 @@ Monster.prototype.update = function(heroX, heroY, modifier) {
         //If attacking, do nothing about movement, only attack
         else {
             this.attackTimer += delay;
+            this.attackFrameTimer += delay;
+            if(this.attackFrameTimer > this.attackFrameDelay) {
+                this.attackFrameTimer = 0;
+                this.attackFrame ++;
+                if(this.attackFrame > this.attackNumFrames)
+                    this.attackFrame = 0;
+            }
             //If attack delay over, finish the beaten
             if(this.attackTimer > this.attackDelay) {
                 this.attack = true;   
-                attackTimer = 0;
-                //if(DEBUG)   
-                    console.log("ATTACK!");
+                this.attackTimer = 0;
+                this.attackFrame = 0;
+                this.attackFrameTimer = 0;
+  
+                console.log("ATTACK!");
             }
         }
     }
