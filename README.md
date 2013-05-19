@@ -1,5 +1,4 @@
-
-Exterminatior
+Exterminator
 ==============
 
 BugExterminator es un juego desarrollado en HTML5.
